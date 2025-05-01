@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosel Radweg Info</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            position: relative;
+        }
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        .quick-action-btn {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .quick-action-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        .container {
+            border: none;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+        }
+        .water-level-container {
+            background-color: #e1f5fe;
+        }
+        .status-container {
+            background-color: #d4edda;
+        }
+        .status-closed {
+            background-color: #f8d7da;
+        }
+        .prediction-container {
+            background-color: #e8f4fd;
+        }
+        .form-container {
+            background-color: white;
+        }
+        .stats-container {
+            background-color: #fff8e1;
+        }
+        .water-meter-container {
+            background-color: #e1f5fe;
+            text-align: center;
+            padding: 20px;
+        }
+        .water-meter {
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(to right, #2ecc71, #f1c40f, #e74c3c);
+            border-radius: 5px;
+            position: relative;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .water-meter-level {
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: width 0.5s ease;
+        }
+        .water-meter-marker {
+            position: absolute;
+            top: -10px;
+            width: 2px;
+            height: 60px;
+            background-color: #000;
+        }
+        .water-meter-label {
+            position: absolute;
+            top: 45px;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .threshold-marker {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background-color: #000;
+            z-index: 2;
+        }
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .nav a, .nav strong {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon {
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+        .btn-text {
+            flex: 1;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-open {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-open:hover {
+            background-color: #218838;
+        }
+        .btn-closed {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-closed:hover {
+            background-color: #c82333;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.6em;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+        .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .water-level-value {
+            color: #3498db;
+        }
+        .status-value {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .open-text {
+            color: #28a745;
+        }
+        .closed-text {
+            color: #dc3545;
+        }
+        .probability {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #f39c12;
+            text-align: center;
+        }
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .message {
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            background-color: #cce5ff;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-weight: 500;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .stats-table th, .stats-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .stats-table th {
+            background-color: #f2f2f2;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 16px;
+            }
+            .header {
+                margin-bottom: 15px;
+            }
+            .quick-actions {
+                margin-top: 8px;
+            }
+            .quick-action-btn {
+                padding: 10px 20px;
+                font-size: 1em;
+                border-radius: 25px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            h2 {
+                font-size: 1.4em;
+            }
+            h3 {
+                font-size: 1.2em;
+            }
+            .container {
+                padding: 15px;
+                margin-bottom: 20px;
+                border-radius: 8px;
+            }
+            .container:hover {
+                transform: none;
+            }
+            .value {
+                font-size: 2em;
+                margin: 10px 0;
+            }
+            .status-value {
+                font-size: 1.6em;
+                margin: 15px 0;
+            }
+            .probability {
+                font-size: 1.3em;
+            }
+            .buttons-container {
+                flex-direction: column;
+            }
+            .btn {
+                display: flex;
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 15px;
+                padding: 16px;
+                font-size: 1.1em;
+                border-radius: 12px;
+            }
+            .btn-icon {
+                font-size: 1.4em;
+                margin-right: 15px;
+            }
+            .water-meter {
+                height: 30px;
+            }
+            .water-meter-marker {
+                height: 45px;
+            }
+            .water-meter-label {
+                font-size: 10px;
+                top: 35px;
+            }
+            .stats-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            .stats-table th, .stats-table td {
+                padding: 8px;
+            }
+            .timestamp {
+                font-size: 0.8em;
+            }
+            .scroll-top-btn {
+                width: 45px;
+                height: 45px;
+                padding: 12px;
+                font-size: 17px;
+                bottom: 18px;
+                right: 18px;
+            }
+        }
+
+        /* Scroll to top button */
+        .scroll-top-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+            border: none;
+            outline: none;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 18px;
+            width: 50px;
+            height: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .scroll-top-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Additional styles for very small screens */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+                font-size: 14px;
+            }
+            h1 {
+                font-size: 1.6em;
+            }
+            h2 {
+                font-size: 1.3em;
+            }
+            .container {
+                padding: 12px;
+            }
+            .value {
+                font-size: 1.8em;
+            }
+            .status-value {
+                font-size: 1.4em;
+            }
+            .btn {
+                padding: 14px 12px;
+                margin-bottom: 12px;
+                border-radius: 10px;
+            }
+            .btn-icon {
+                font-size: 1.3em;
+                margin-right: 12px;
+            }
+            .scroll-top-btn {
+                width: 40px;
+                height: 40px;
+                padding: 10px;
+                font-size: 16px;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mosel-Radweg Informationen</h1>
+        <div class="quick-actions">
+            <a href="/api/water-level/refresh" class="quick-action-btn">Aktualisieren</a>
+        </div>
+    </div>
+
+    <!-- Success message if available -->
+    <div class="message" th:if="${message}" th:text="${message}"></div>
+
+    <!-- Road Status Forecast Section -->
+    <div class="container status-container" th:classappend="${isOpen ? 'status-open' : 'status-closed'}">
+        <h2>Vorhersage des Radwegstatus</h2>
+        <p>Basierend auf dem aktuellen Wasserstand und bisherigen Meldungen:</p>
+        <div class="status-value">
+            <span th:if="${isOpen}" class="open-text">RADWEG VORAUSSICHTLICH OFFEN ✅</span>
+            <span th:unless="${isOpen}" class="closed-text">RADWEG VORAUSSICHTLICH GESPERRT ❌</span>
+        </div>
+        <div class="probability">
+            Zuverlässigkeit dieser Vorhersage: <span th:text="${probability} + '%'">75%</span>
+        </div>
+        <p class="timestamp">
+            <strong>Letzte Aktualisierung:</strong> <span th:text="${#temporals.format(lastUpdated, 'dd.MM.yyyy HH:mm')}">01.01.2023 12:00</span>
+        </p>
+    </div>
+
+    <!-- Water Level Section -->
+    <div class="container water-level-container">
+        <h2>Aktueller Wasserstand der Mosel</h2>
+        <div class="value water-level-value" th:text="${waterLevel} + ' m'">0.0 m</div>
+        <p class="timestamp" th:if="${timestamp}">
+            Letzte Messung: <span th:text="${#temporals.format(timestamp, 'dd.MM.yyyy HH:mm')}">01.01.2023 12:00</span>
+        </p>
+    </div>
+
+    <!-- Water Level Meter Section - Moved up for better flow -->
+    <div class="container water-meter-container">
+        <h2>Wasserstand und Meldehöhe</h2>
+        <p>Der Radweg-Status basiert primär auf Nutzerberichten. Historisch wurde bei etwa 5,0 m Wasserstand eine Sperrung beobachtet, aber die tatsächliche Meldehöhe kann variieren:</p>
+
+        <div class="water-meter">
+            <div class="water-meter-level" id="water-meter-level"></div>
+            <div class="threshold-marker" id="threshold-marker"></div>
+
+            <!-- Markers for the meter -->
+            <div class="water-meter-marker" style="left: 0%"></div>
+            <div class="water-meter-label" style="left: 0%">0m</div>
+
+            <div class="water-meter-marker" style="left: 25%"></div>
+            <div class="water-meter-label" style="left: 25%">2,5m</div>
+
+            <div class="water-meter-marker" style="left: 50%"></div>
+            <div class="water-meter-label" style="left: 50%">5,0m</div>
+
+            <div class="water-meter-marker" style="left: 75%"></div>
+            <div class="water-meter-label" style="left: 75%">7,5m</div>
+
+            <div class="water-meter-marker" style="left: 100%"></div>
+            <div class="water-meter-label" style="left: 100%">10m</div>
+        </div>
+
+        <p id="water-level-status" class="status-value"></p>
+        <p><small>Hinweis: Die Meldehöhe ist der Wasserstand, bei dem die Behörden eine Sperrung melden. Ihre Berichte helfen uns, diese genauer zu bestimmen.</small></p>
+    </div>
+
+    <!-- Bike Lanes Section -->
+    <div class="container" th:classappend="${isBikeRouteOpen ? 'status-open' : 'status-closed'}">
+        <h2>Mosel-Radweg Status</h2>
+        <p>Information über die Radwege entlang der Mosel zwischen Trier und Wasserbillig:</p>
+
+        <div class="status-value">
+            <span th:if="${isBikeRouteOpen}" class="open-text">RADWEG VORAUSSICHTLICH OFFEN ✅</span>
+            <span th:unless="${isBikeRouteOpen}" class="closed-text">RADWEG VORAUSSICHTLICH GESPERRT ❌</span>
+        </div>
+
+        <p>
+            <small>Der Radweg-Status basiert auf dem aktuellen Wasserstand der Mosel und historischen Daten.</small>
+        </p>
+    </div>
+
+    <!-- Form for cyclists to report road status -->
+    <div class="container form-container">
+        <h2>Status melden</h2>
+        <p>Haben Sie den Radweg gerade benutzt? Bitte teilen Sie uns mit, ob er offen oder gesperrt ist:</p>
+
+        <form method="post" action="/road-status-update">
+            <div class="buttons-container">
+                <button type="submit" name="isOpen" value="true" class="btn btn-open">
+                    <span class="btn-icon">✅</span>
+                    <span class="btn-text">Radweg ist OFFEN</span>
+                </button>
+                <button type="submit" name="isOpen" value="false" class="btn btn-closed">
+                    <span class="btn-icon">❌</span>
+                    <span class="btn-text">Radweg ist GESPERRT</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Statistics Section - Moved down as less important -->
+    <div class="container stats-container">
+        <h2>Letzte Meldungen</h2>
+        <p>Die letzte Statusmeldung wurde eingereicht am:</p>
+        <p class="timestamp">
+            <strong>Zeitpunkt:</strong> <span th:text="${#temporals.format(lastUpdated, 'dd.MM.yyyy HH:mm')}">01.01.2023 12:00</span>
+        </p>
+
+        <h3>Bisherige Statusmeldungen</h3>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Datum & Zeit</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="status : ${recentStatuses}">
+                    <td th:text="${#temporals.format(status.timestamp, 'dd.MM.yyyy HH:mm')}">01.01.2023 12:00</td>
+                    <td>
+                        <span th:if="${status.open}" class="open-text">OFFEN</span>
+                        <span th:unless="${status.open}" class="closed-text">GESPERRT</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Scroll to top button -->
+    <button id="scrollToTopBtn" class="scroll-top-btn" title="Nach oben scrollen">↑</button>
+
+    <script th:inline="javascript">
+        // Initialize the water level meter when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the current water level from the page
+            const waterLevelText = document.querySelector('.water-level-value').textContent;
+            const waterLevel = parseFloat(waterLevelText.replace(',', '.').replace('m', '').trim());
+
+            // Reference value based on historical observations
+            // This is not a fixed threshold but a reference point
+            const referenceValue = 5.0;
+
+            // Update the water level meter
+            updateWaterLevelMeter(waterLevel, referenceValue);
+
+            // Initialize scroll to top button
+            initScrollToTopButton();
+        });
+
+        // Function to update the water level meter
+        function updateWaterLevelMeter(waterLevel, referenceValue) {
+            // Get the meter elements
+            const waterMeterLevel = document.getElementById('water-meter-level');
+            const thresholdMarker = document.getElementById('threshold-marker');
+            const waterLevelStatus = document.getElementById('water-level-status');
+
+            // Calculate the percentage (0-10m range)
+            const percentage = Math.min(Math.max(waterLevel / 10, 0), 1) * 100;
+
+            // Calculate the reference position (5.0m = 50%)
+            const referencePosition = (referenceValue / 10) * 100;
+
+            // Update the meter level (inverted because we're using right: 0)
+            waterMeterLevel.style.width = (100 - percentage) + '%';
+
+            // Update the reference marker position
+            thresholdMarker.style.left = referencePosition + '%';
+
+            // Update the status text with more nuanced language
+            if (waterLevel < referenceValue) {
+                waterLevelStatus.innerHTML = 'Aktueller Wasserstand: <strong>' + waterLevel.toFixed(2).replace('.', ',') + 'm</strong> - unter dem historischen Referenzwert von <strong>' + referenceValue.toFixed(1).replace('.', ',') + 'm</strong>';
+                waterLevelStatus.className = 'status-value open-text';
+            } else {
+                waterLevelStatus.innerHTML = 'Aktueller Wasserstand: <strong>' + waterLevel.toFixed(2).replace('.', ',') + 'm</strong> - über dem historischen Referenzwert von <strong>' + referenceValue.toFixed(1).replace('.', ',') + 'm</strong>';
+                waterLevelStatus.className = 'status-value closed-text';
+            }
+        }
+
+        // Function to initialize the scroll to top button
+        function initScrollToTopButton() {
+            const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+            // Show button when user scrolls down 300px
+            window.addEventListener("scroll", function() {
+                if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                    scrollToTopBtn.style.display = "block";
+                } else {
+                    scrollToTopBtn.style.display = "none";
+                }
+            });
+
+            // Scroll to top when button is clicked
+            scrollToTopBtn.addEventListener("click", function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            });
+        }
+    </script>
+</body>
+</html>
